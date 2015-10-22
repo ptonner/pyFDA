@@ -2,5 +2,5 @@
 
 Functional data analysis in python.
 
-## Recommended reading
+## References
 * Functional Data Analysis, Ramsay and Silverman, 2005
