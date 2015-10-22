@@ -2,7 +2,7 @@ import numpy as np
 
 class GaussNewton(object):
 
-	def __init__(self,y,x,thetaInit,residual,partials):
+	def __init__(self,y,x,thetaInit,residual,partials,weights=None,ridge=None):
 		"""Minimized the residual sum of squares for a function f using the Gauss Newton method.
 
 		Parameters:
@@ -24,13 +24,17 @@ class GaussNewton(object):
 
 		self.iteration = 0
 		self.thetaInit = self.thetaCurrent = thetaInit
-		self.p = thetaInit.shape[0]
+		self.thetaHistory = [self.thetaInit]
+		self.p = len(partials)
 		self.residual = residual
 		self.partials = partials
-		assert len(partials) == self.p, "must provide partial function for each parameter!"
+		# assert len(partials) == self.p, "must provide partial function for each parameter!"
+
+		self.weights = weights
+		self.ridge = ridge
 
 	def jacobian(self,):
-		return np.array([[self.partials[j](self.y[i],self.x[i,:],self.thetaCurrent)[0] for j in range(self.p)] for i in range(self.n)])
+		return np.array([[self.partials[j](self.x[i,:],self.thetaCurrent)[0] for j in range(self.p)] for i in range(self.n)])
 
 	def resid(self,):
 		return np.array([self.residual(self.y[i],self.x[i,:],self.thetaCurrent)[0] for i in range(self.n)])
@@ -44,11 +48,34 @@ class GaussNewton(object):
 		for i in range(iterations):
 			self._iteration()
 
+	def w(self):
+		w = np.eye(self.n)
+		if not self.weights is None:
+			w = np.diag(self.weights)
+
+		return w
+
 	def _iteration(self,):
 
+		w = np.eye(self.n)
+		if not self.weights is None:
+			w = np.diag(self.weights)
+
+		ridge = 0
+		if not self.ridge is None:
+			ridge = self.ridge
+		ridge = np.eye(self.p)*ridge
+
 		J = self.jacobian()
-		proj = np.dot(np.linalg.inv(np.dot(J.T,J)),J.T)
-		r = self.resid()
-		self.thetaCurrent = self.thetaCurrent + np.dot(proj,r)
+		proj = np.dot(np.linalg.inv(np.dot(J.T,J)+ridge),J.T)
+		r = np.dot(w,self.resid())
 		
+		temp = np.zeros(self.thetaCurrent.shape[0]) 
+		temp[:self.p] = temp[:self.p] + self.thetaCurrent[:self.p]
+		temp[:self.p] = temp[:self.p] + np.dot(proj,r)
+		self.thetaCurrent = temp
+		# print self.thetaCurrent, temp, np.dot(proj,r)
+		# self.thetaCurrent = self.thetaCurrent + np.dot(proj,r)
+		
+		self.thetaHistory.append(self.thetaCurrent)
 		self.iteration += 1
