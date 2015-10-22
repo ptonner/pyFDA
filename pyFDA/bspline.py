@@ -7,4 +7,9 @@ class Bspline(Function):
 		Function.__init__(self,"B-spline",x,y,*args,**kwargs)
 
 	def _fit(self,x,y,*args,**kwargs):
-		self.knots,self.coeff,self.degree = interpolate.splev(x,y,*args,**kwargs)
+		self.knots,self.coeff,self.degree = interpolate.splrep(x,y,*args,**kwargs)
+
+	def predict(self,x,deriv=None,*args,**kwargs):
+		if deriv is None:
+			deriv = 0
+		return interpolate.splev(x,(self.knots,self.coeff,self.degree),der=deriv)

@@ -13,7 +13,10 @@ class Function(object):
 		self._fit(x,y,*args,**kwargs)
 
 	def _fit(self,x,y,*args,**kwargs):
-		raise NotImplemented("")
+		raise NotImplementedError("")
 
 	def predict(self,x,*args,**kwargs):
-		raise NotImplemented("")	
+		raise NotImplementedError("")
+
+	def __call__(self,x,*args,**kwargs):
+		return self.predict(x,*args,**kwargs)
