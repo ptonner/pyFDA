@@ -19,10 +19,10 @@ def f(x,theta):
 def resid(y,x,theta):
 	return y - theta[0]*x/(x+theta[1])
 
-def partial1(y,x,theta):
+def partial1(x,theta):
 	return x/(theta[1]+x)
 
-def partial2(y,x,theta):
+def partial2(x,theta):
 	return -theta[0]*x/(theta[1]+x)**2
 
 thetaInit = np.array([.1,.6])
