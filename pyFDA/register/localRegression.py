@@ -7,7 +7,7 @@ def g(t,theta):
 
 class RegisterLocalRegression(object):
 
-	def __init__(self,x,y,t,bandwidth=None,ridge=None,variance=None):
+	def __init__(self,x,y,t,bandwidth=None,ridge=None,decay=True,variance=None):
 		self.x = x
 		self.xspline = bspline.Bspline(t,x)
 		self.y = y
@@ -17,11 +17,13 @@ class RegisterLocalRegression(object):
 
 		self.bandwidth = bandwidth
 		self.ridge = ridge
+		self.decay = decay
 		self.variance = variance
 
 		self.xhats = [self.xspline]
 		self.ghats = []
 		self._thetas = []
+		self.error = [self.SRS()]
 
 	def thetas(self,):
 		return np.array(self._thetas)
@@ -32,10 +34,12 @@ class RegisterLocalRegression(object):
 
 		partials = [self.partial1,self.partial2,self.partial3]
 		xhat = self.xspline(self.t)
+		self.deltas = []
 
 		for i in range(iter):
 			ghat = []
 			self._thetas.append([])
+			self.deltas.append([])
 			for j in range(self.n):
 
 				variance = self.variance
@@ -45,7 +49,10 @@ class RegisterLocalRegression(object):
 				if self.bandwidth is None:
 					w = None
 				else:
-					decay = 2**(-i)
+					if self.decay:
+						decay = 2**(-i)
+					else:
+						decay = 1
 					w = 1 - variance * ((self.t - self.t[j])**2)/((self.bandwidth*decay)**2)
 					w = np.max((w,np.zeros(self.n)),0)
 
@@ -54,18 +61,21 @@ class RegisterLocalRegression(object):
 
 				self._thetas[-1].append(gn.thetaCurrent)
 				ghat.append(self.g(self.t[j],gn.thetaCurrent))
+				self.deltas[-1].append(gn.deltas[-1])
 
 			gspline = bspline.Bspline(self.t,ghat)
 			xhat = self.xspline(gspline(self.t))
-
-			# ginv = np.array([binarySearch_inverseMonotonic(0.,6.,gspline,z,0) for z in self.t])
-			# ginvspline = bspline.Bspline(t,ginv)
-			# xhat = xspline(ginvspline(t))
-
 			self.xspline = bspline.Bspline(self.t,xhat)
+
+			# uncomment to update x with the inverse of g, as described in the paper (is this correct?)
+			# ginv = bspline.Bspline(ghat,self.t)
+			# xhat = self.xspline(ginv(self.t))
+			# self.xspline = bspline.Bspline(self.t,xhat)		
 			
 			self.xhats.append(self.xspline)
 			self.ghats.append(gspline)
+
+			self.error.append(self.SRS())
 
 	def h(self,):
 		htemp = self.ghats[0](self.t)
@@ -74,6 +84,11 @@ class RegisterLocalRegression(object):
 
 		return bspline.Bspline(self.t,htemp)
 
+	def SRS(self,):
+		if len(self._thetas) > 0:
+			return np.sum((self.y-np.exp(self.thetas()[-1,:,2]) * self.xspline(self.t))**2)
+		else:
+			return np.sum((self.y- self.xspline(self.t))**2)
 
 	def g(self,t,theta):
 		return np.exp(theta[0]) *(t+theta[1])
