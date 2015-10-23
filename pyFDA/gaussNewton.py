@@ -28,6 +28,7 @@ class GaussNewton(object):
 		self.p = len(partials)
 		self.residual = residual
 		self.partials = partials
+		self.deltas = []
 		# assert len(partials) == self.p, "must provide partial function for each parameter!"
 
 		self.weights = weights
@@ -76,6 +77,8 @@ class GaussNewton(object):
 		self.thetaCurrent = temp
 		# print self.thetaCurrent, temp, np.dot(proj,r)
 		# self.thetaCurrent = self.thetaCurrent + np.dot(proj,r)
+
+		self.deltas.append(np.dot(proj,r))
 		
 		self.thetaHistory.append(self.thetaCurrent)
 		self.iteration += 1
