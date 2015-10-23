@@ -53,10 +53,16 @@ class RegisterLocalRegression(object):
 						decay = 2**(-i)
 					else:
 						decay = 1
-					w = 1 - variance * ((self.t - self.t[j])**2)/((self.bandwidth*decay)**2)
-					w = np.max((w,np.zeros(self.n)),0)
 
-				gn = gaussNewton.GaussNewton(self.y,xhat[:,None],np.array([0,0,0]),self.residual,partials,w,self.ridge)
+					# w = 1 - variance * ((self.t - self.t[j])**2)/((self.bandwidth*decay)**2)
+					w = variance * np.exp((-(self.t - self.t[j])**2)/((self.bandwidth*decay)))
+					# w = np.max((w,np.zeros(self.n)),0)
+
+				# TEMP REMOVE!
+				# w = 1 - ((self.t - self.t[j])**2)/((self.bandwidth)**2)
+
+				# gn = gaussNewton.GaussNewton(self.y,xhat[:,None],np.array([0,0,0]),self.residual,partials,w,self.ridge)
+				gn = gaussNewton.GaussNewton(self.y,self.xspline(self.t)[:,None],np.array([0,0,0]),self.residual,partials,w,self.ridge)
 				gn.run()
 
 				self._thetas[-1].append(gn.thetaCurrent)
