@@ -52,7 +52,7 @@ y = np.cos(t**3/(np.pi**2))
 # hspline = bspline.Bspline(hpoints[:,0],hpoints[:,1])
 # h = hspline(t)
 
-theta1points = np.array([(0,0),(2,.05),(3,.001),(4,0),(6,0)])
+theta1points = np.array([(0,0),(2,-.05),(4,-.03),(6,0)])
 theta1 = bspline.Bspline(theta1points[:,0],theta1points[:,1])
 
 theta2points = np.array([(0,0),(1,.2),(5,-.2),(6,0)])
@@ -72,6 +72,13 @@ amp = scipy.interpolate.splrep(ampPoints[:,0],ampPoints[:,1])
 
 x = (1+scipy.interpolate.splev(t,amp)) * x
 
+theta1points = .05*((t-3)**2 - 9)
+theta1 = bspline.Bspline(t,theta1points)
+h = g(t,[theta1(t),0,0])
+hspline = bspline.Bspline(t,h)
+
+x = np.cos(t**3/(np.pi**2))
+y = np.cos(hspline(t)**3/(np.pi**2))
 
 y = (t)/(1+t)
 x = (g(t,[.1,0,0]))/(1+g(t,[.1,0,0]))
