@@ -27,36 +27,6 @@ def binarySearch_inverseMonotonic(t0,t1,f,ft,i):
 	else:
 		return binarySearch_inverseMonotonic(t0,tm,f,ft,i+1)
 
-n = 200
-t = np.linspace(0,6,200)
-y = np.cos(t**3/(np.pi**2))
-
-# define the registration for curve x
-hpoints = np.array([(0,0),(2,1),(4,3.75),(6,6)])
-hspline = bspline.Bspline(hpoints[:,0],hpoints[:,1])
-h = hspline(t)
-hinv = np.array([binarySearch_inverseMonotonic(0.,6.,hspline,z,0) for z in t])
-hinvspline = bspline.Bspline(t,hinv)
-
-theta1points = np.array([(0,0),(2,.01),(3,.005),(6,0)])
-theta1 = bspline.Bspline(theta1points[:,0],theta1points[:,1])
-
-theta2points = np.array([(0,0),(1,.2),(5,-.2),(6,0)])
-theta2 = bspline.Bspline(theta2points[:,0],theta2points[:,1])
-
-x = np.cos(hinv**3/(np.pi**2))
-x = np.cos(hinvspline(t)**3/(np.pi**2))
-
-# add some amplitude variation
-ampPoints = np.array([(0,0),(1,.05),(2,-.2),(4,-.05),(5,0.05)])
-amp = scipy.interpolate.splrep(ampPoints[:,0],ampPoints[:,1])
-
-x = (1+scipy.interpolate.splev(t,amp)) * x
-
-
-y = (t)/(1+t)
-x = (g(t,[.1,0,0]))/(1+g(t,[.1,0,0]))
-
 def g(t,theta):
 	return np.exp(theta[0]) *(t+theta[1])
 
@@ -72,14 +42,50 @@ def partial2(t,theta):
 def partial3(t,theta):
 	return np.exp(theta[2]) * xspline(g(t,theta),deriv=0)
 
-bandwidth = np.pi
+
+n = 200
+t = np.linspace(0,6,200)
+y = np.cos(t**3/(np.pi**2))
+
+# define the registration for curve x
+# hpoints = np.array([(0,0),(2,1),(4,3.75),(6,6)])
+# hspline = bspline.Bspline(hpoints[:,0],hpoints[:,1])
+# h = hspline(t)
+
+theta1points = np.array([(0,0),(2,.05),(3,.001),(4,0),(6,0)])
+theta1 = bspline.Bspline(theta1points[:,0],theta1points[:,1])
+
+theta2points = np.array([(0,0),(1,.2),(5,-.2),(6,0)])
+theta2 = bspline.Bspline(theta2points[:,0],theta2points[:,1])
+
+h = g(t,[theta1(t),0,0])
+hspline = bspline.Bspline(t,h)
+hinv = np.array([binarySearch_inverseMonotonic(0.,6.,hspline,z,0) for z in t])
+hinvspline = bspline.Bspline(t,hinv)
+
+# x = np.cos(hinv**3/(np.pi**2))
+x = np.cos(hinvspline(t)**3/(np.pi**2))
+
+# add some amplitude variation
+ampPoints = np.array([(0,0),(1,.05),(2,-.2),(4,-.05),(5,0.05)])
+amp = scipy.interpolate.splrep(ampPoints[:,0],ampPoints[:,1])
+
+x = (1+scipy.interpolate.splev(t,amp)) * x
+
+
+y = (t)/(1+t)
+x = (g(t,[.1,0,0]))/(1+g(t,[.1,0,0]))
+
+
+
+bandwidth = np.pi/2
 variance = 1
 
 xspline = bspline.Bspline(t,x)
 xhats = [xspline]
 ghats = []
 thetas = []
-for i in range(1):
+for i in range(3):
 	ghat = []
 	thetas.append([])
 	for j in range(n):
@@ -89,8 +95,8 @@ for i in range(1):
 
 		# gn = gaussNewton.GaussNewton(y,x[:,None],np.array([0,0,0]),resid,[partial1,partial2,partial3],w,n/2)
 		# gn = gaussNewton.GaussNewton(y,x[:,None],np.array([0,0,0]),resid,[partial1,partial2],w,n)
-		# gn = gaussNewton.GaussNewton(y,x[:,None],np.array([0,0,0]),resid,[partial1],w,n)
-		gn = gaussNewton.GaussNewton(y,x[:,None],np.array([0,0,0]),resid,[partial1],w)
+		gn = gaussNewton.GaussNewton(y,x[:,None],np.array([0,0,0]),resid,[partial1],w,1)
+		# gn = gaussNewton.GaussNewton(y,x[:,None],np.array([0,0,0]),resid,[partial1],w)
 		gn.run()
 		thetas[-1].append(gn.thetaCurrent)
 
