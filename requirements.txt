@@ -39,6 +39,7 @@ pyzmq==14.7.0
 qtconsole==4.1.0
 requests==2.8.1
 scipy==0.16.0
+seaborn==0.6.0
 simplegeneric==0.8.1
 six==1.10.0
 snowballstemmer==1.2.0
