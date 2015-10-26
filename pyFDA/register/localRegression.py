@@ -28,6 +28,31 @@ class RegisterLocalRegression(object):
 	def thetas(self,):
 		return np.array(self._thetas)
 
+	def partials(self,):
+		return [self.partial1,self.partial2,self.partial3]
+
+	def gaussNewton(self,timeInd,decay=None):
+		partials = [self.partial1,self.partial2,self.partial3]
+
+		variance = self.variance
+		if variance is None:
+			variance = 1
+
+		if self.bandwidth is None:
+			w = None
+		else:
+			if decay is None:
+				decay = 1
+
+			# w = 1 - variance * ((self.t - self.t[j])**2)/((self.bandwidth*decay)**2)
+			w = variance * np.exp((-(self.t - self.t[timeInd])**2)/((self.bandwidth*decay)))
+			# w = np.max((w,np.zeros(self.n)),0)
+
+		# gn = gaussNewton.GaussNewton(self.y,self.xspline(self.t)[:,None],np.array([0,0,0]),self.residual,self.partials(),w,self.ridge)
+		gn = gaussNewton.GaussNewton(self.y,self.t[:,None],np.array([0,0,0]),self.residual,self.partials(),w,self.ridge)
+
+		return gn
+
 	def run(self,iter=None):
 		if iter is None:
 			iter = 1
@@ -63,6 +88,8 @@ class RegisterLocalRegression(object):
 
 				# gn = gaussNewton.GaussNewton(self.y,xhat[:,None],np.array([0,0,0]),self.residual,partials,w,self.ridge)
 				gn = gaussNewton.GaussNewton(self.y,self.xspline(self.t)[:,None],np.array([0,0,0]),self.residual,partials,w,self.ridge)
+
+				gn = self.gaussNewton(j,decay=decay)
 				gn.run()
 
 				self._thetas[-1].append(gn.thetaCurrent)
