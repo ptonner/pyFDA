@@ -14,7 +14,7 @@ class GaussNewton(object):
 		thetaInit : array_like
 			array of initial parameter estimates (p,1)
 		residual : function
-			function defining the residual, r(y,x,theta)
+			function defining the residual, r(y,x,theta), should be of the form y - f(x,theta)
 		partials: list of functions
 		functions defining the partial derivative of the residual for each parameter, p(x,theta). len(partials) = p"""
 		self.y = y
