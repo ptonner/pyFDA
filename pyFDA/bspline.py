@@ -12,4 +12,6 @@ class Bspline(Function):
 	def predict(self,x,deriv=None,*args,**kwargs):
 		if deriv is None:
 			deriv = 0
+		if deriv == -1:
+			return interpolate.splev(x,interpolate.splantider((self.knots,self.coeff,self.degree)))
 		return interpolate.splev(x,(self.knots,self.coeff,self.degree),der=deriv)
