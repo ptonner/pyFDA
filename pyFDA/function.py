@@ -5,7 +5,7 @@ class Function(object):
 
 	def __init__(self,name=None,x=None,y=None,*args,**kwargs):
 		self.name = name
-		self.fit(x,y)
+		self.fit(x,y,*args,**kwargs)
 
 	def fit(self,x=None,y=None,*args,**kwargs):
 		if x is None or y is None:
